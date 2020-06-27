@@ -1,0 +1,131 @@
+From fc99d1181658134d58101334e4e0b52fde4bf1be Mon Sep 17 00:00:00 2001
+From: pooja <poojaxofficial@gmail.com>
+Date: Wed, 24 Jun 2020 13:42:51 +0530
+Subject: [PATCH] Create Patch File
+
+---
+ .vscode/launch.json | 15 +++++++++++++++
+ src/App.tsx         | 28 ++++++++++++++++++++++------
+ src/Graph.tsx       | 13 +++++++++++--
+ 3 files changed, 48 insertions(+), 8 deletions(-)
+ create mode 100644 .vscode/launch.json
+
+diff --git a/.vscode/launch.json b/.vscode/launch.json
+new file mode 100644
+index 0000000..7a9dfa0
+--- /dev/null
++++ b/.vscode/launch.json
+@@ -0,0 +1,15 @@
++{
++    // Use IntelliSense to learn about possible attributes.
++    // Hover to view descriptions of existing attributes.
++    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
++    "version": "0.2.0",
++    "configurations": [
++        {
++            "type": "pwa-chrome",
++            "request": "launch",
++            "name": "Launch Chrome against localhost",
++            "url": "http://localhost:8080",
++            "webRoot": "${workspaceFolder}"
++        }
++    ]
++}
+\ No newline at end of file
+diff --git a/src/App.tsx b/src/App.tsx
+index 0728518..93ff100 100755
+--- a/src/App.tsx
++++ b/src/App.tsx
+@@ -8,6 +8,7 @@ import './App.css';
+  */
+ interface IState {
+   data: ServerRespond[],
++  showGraph: boolean,
+ }
+ 
+ /**
+@@ -22,6 +23,7 @@ class App extends Component<{}, IState> {
+       // data saves the server responds.
+       // We use this state to parse data down to the child element (Graph) as element property
+       data: [],
++      showGraph : false,
+     };
+   }
+ 
+@@ -29,18 +31,32 @@ class App extends Component<{}, IState> {
+    * Render Graph react component with state.data parse as property data
+    */
+   renderGraph() {
+-    return (<Graph data={this.state.data}/>)
++    if (this.state.showGraph){
++      return (<Graph data={this.state.data}/>)
++    }
++    
+   }
+ 
+   /**
+    * Get new data from server and update the state with the new data
+    */
+   getDataFromServer() {
+-    DataStreamer.getData((serverResponds: ServerRespond[]) => {
+-      // Update the state by creating a new array of data that consists of
+-      // Previous data in the state and the new data from server
+-      this.setState({ data: [...this.state.data, ...serverResponds] });
+-    });
++    let x = 0;
++    const interval = setInterval(() =>{
++      DataStreamer.getData((serverResponds: ServerRespond[]) => {
++
++        // Update the state by creating a new array of data that consists of
++        // Previous data in the state and the new data from server
++        this.setState({
++          data: serverResponds,
++          showGraph:true,
++         });
++      });
++      x++;
++      if (x > 1000) {
++        clearInterval(interval);
++      }
++    },100);
+   }
+ 
+   /**
+diff --git a/src/Graph.tsx b/src/Graph.tsx
+index ec1430e..d7cec0f 100644
+--- a/src/Graph.tsx
++++ b/src/Graph.tsx
+@@ -14,7 +14,7 @@ interface IProps {
+  * Perspective library adds load to HTMLElement prototype.
+  * This interface acts as a wrapper for Typescript compiler.
+  */
+-interface PerspectiveViewerElement {
++interface PerspectiveViewerElement extends HTMLElement {
+   load: (table: Table) => void,
+ }
+ 
+@@ -44,11 +44,20 @@ class Graph extends Component<IProps, {}> {
+     if (window.perspective && window.perspective.worker()) {
+       this.table = window.perspective.worker().table(schema);
+     }
++    if (window.perspective) {
++           this.table = window.perspective.worker().table(schema);
++    }
+     if (this.table) {
+       // Load the `table` in the `<perspective-viewer>` DOM reference.
+-
++      console.log('change table');
+       // Add more Perspective configurations here.
+       elem.load(this.table);
++      elem.setAttribute('view', 'y_line'); // this is the view of data
++      elem.setAttribute('column-pivots', '["stock"]'); // this allows use to distinguish stocks
++      elem.setAttribute('row-pivots', '["timestamp"]'); // this maps each datapoint based on timestamp
++      elem.setAttribute('columns', '["top_ask_price"]'); // it allows to only focus on a particular part of a stock's data
++      // aggregates helps us to handle the duplicated data
++      elem.setAttribute('aggregates', '{"stock":"distinct count","top_ask_price":"avg","top_bid_price":"avg","timestamp":"distinct count"}');
+     }
+   }
+ 
+-- 
+2.27.0.windows.1
+
