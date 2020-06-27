@@ -20,5 +20,10 @@ The visualization of charts and data analysis our trader’s see is all built on
 
 You’ll have to gain an understanding of the user requirements and then build something that meets those requirements.
 
+## TASKS INCLUDE :
+### 1. Interface with a stock price data feed
+### 2. Use JPMorgan Chase frameworks and tools
+### 3. Display data visually for traders
+
 # Certificate
 ![img](img.png)
